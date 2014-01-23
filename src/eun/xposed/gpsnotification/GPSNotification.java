@@ -59,6 +59,15 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	                     nm = (NotificationManager)mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 	             }
 			});
+			
+			XposedHelpers.findAndHookMethod(LocationControllerClass, "refreshViews", new XC_MethodHook() {
+				@Override
+	    		protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+	    			XposedHelpers.setBooleanField(param.thisObject, "mAreActiveLocationRequests", false);
+	    		}
+			});
+			
+			
 		}
 	}
 	
