@@ -1,0 +1,25 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="eun.xposed.gpsnotification"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="19"
+        android:targetSdkVersion="19"  />
+
+    <application
+        android:icon="@drawable/stat_sys_gps_on"
+        android:label="GPSNotification" >
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="2.0*" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="Brings the JellyBean GPS Notification back." />
+
+    </application>
+
+</manifest>
