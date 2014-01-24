@@ -1,0 +1,20 @@
+<resources>
+
+    <string name="title_activity_settings">Settings</string>
+
+    <string name="pref_header_general">General</string>
+    <string name="pref_title_position">Location of GPS Icon (in Statusbar)?</string>
+
+    <string-array name="pref_list_position">
+        <item>Invisible</item>
+        <item>Left</item>
+        <item>Right</item>
+    </string-array>
+    
+    <string-array name="pref_list_position_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+ 
+</resources>

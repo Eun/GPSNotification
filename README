@@ -4,3 +4,7 @@ GPSNotification
 Brings the JellyBean GPS Notification back.
 
 Needs the Xposed Framework
+
+TODO
+====
+Animated GPS Icon in QuickSettings
