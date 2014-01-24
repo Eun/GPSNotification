@@ -18,6 +18,7 @@ import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -46,10 +47,7 @@ public class SettingsActivity extends PreferenceActivity {
 				// Set the summary to reflect the new value.
 				preference.setSummary(index >= 0 ? listPreference.getEntries()[index] : null);
 				
-				Intent intent = new Intent();
-				intent.setAction(GPSNotification.ACTION_SETTINGS_CHANGED);
-				intent.putExtra(preference.getKey(), stringValue);
-				sendBroadcast(intent);
+				Toast.makeText(SettingsActivity.this, "Restart to apply changes!", Toast.LENGTH_LONG).show();
 				
 			}
 			return true;

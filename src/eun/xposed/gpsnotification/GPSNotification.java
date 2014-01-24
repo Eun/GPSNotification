@@ -42,6 +42,8 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 		gps_notification_found_text, gps_notification_searching_text, accessibility_location_active; // texts
 	
 	//InitPackageResourcesParam resparam;
+	
+	private GPSIconPosition IconPos;
 		
 	public enum GPSIconPosition
 	{
@@ -72,7 +74,6 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	    }
 	}
 
-	public static XSharedPreferences prefs;
 	
 	private Object mStatusBarManager;
 	
@@ -88,7 +89,9 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 		if (Build.VERSION.SDK_INT >= 19)
 		{
 			LocationControllerClass = QuickSettingsModelClass = null;
-			prefs = new XSharedPreferences(PKG);
+			XSharedPreferences prefs = new XSharedPreferences(PKG);
+			IconPos = GPSIconPosition.fromInteger(Integer.parseInt(prefs.getString("iconposition", String.valueOf(GPSIconPosition.getValue(GPSIconPosition.LEFT)))));
+			
 			LocationControllerClass = XposedHelpers.findClass("com.android.systemui.statusbar.policy.LocationController", lpparam.classLoader);
 			XposedBridge.hookAllConstructors(LocationControllerClass, new XC_MethodHook() {
 				 @Override
@@ -97,7 +100,6 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 		             IntentFilter filter = new IntentFilter();
 		             filter.addAction(GPS_ENABLED_CHANGE_ACTION);
 		             filter.addAction(GPS_FIX_CHANGE_ACTION);
-		             filter.addAction(ACTION_SETTINGS_CHANGED);
 		             mContext.registerReceiver(GPSNotification.this, filter);
 	                 nm = (NotificationManager)mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 	                 mStatusBarManager = XposedHelpers.getObjectField(param.thisObject, "mStatusBarManager");
@@ -189,38 +191,7 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		
-		GPSIconPosition IconPos;
 		final String action = intent.getAction();
-		 if (action.equals(ACTION_SETTINGS_CHANGED))
-		 {
-			 IconPos =  GPSIconPosition.fromInteger(Integer.parseInt(intent.getStringExtra("iconposition")));
-	
-			 // If pos has changed to none: remove all icons / notifications
-			 if (IconPos == GPSIconPosition.NONE)
-			 {
-				 nm.cancel(GPS_NOTIFICATION_ID);
-				 XposedHelpers.callMethod(mStatusBarManager, "removeIcon", LOCATION_STATUS_ICON_PLACEHOLDER);
-				 return;
-			 }
-			 // remove right
-			 else if (IconPos == GPSIconPosition.LEFT)
-			 {
-				 XposedHelpers.callMethod(mStatusBarManager, "removeIcon", LOCATION_STATUS_ICON_PLACEHOLDER);
-			 }
-			 // remove left
-			 else if (IconPos == GPSIconPosition.RIGHT)
-			 {
-				 nm.cancel(GPS_NOTIFICATION_ID);
-			 }
-			 // redraw
-		 }
-		 else
-		 {
-			 IconPos = GPSIconPosition.fromInteger(Integer.parseInt(prefs.getString("iconposition", String.valueOf(GPSIconPosition.getValue(GPSIconPosition.LEFT)))));
-		 }
-		
-		
 		if (IconPos == GPSIconPosition.NONE)
 		{
 			return;
