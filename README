@@ -3,7 +3,29 @@ GPSNotification
 
 Brings the JellyBean GPS Notification back.
 
-Needs the Xposed Framework
+Needs the [Xposed Framework] [1]
+
+[This Module on the Repository] [2]
+
+[Discussion thread] [3]
+
+[1]: http://xposed.info "Xpsoed Framework"
+[2]: http://repo.xposed.info/module/eun.xposed.gpsnotification "This Module on the Repository"
+[3]: http://forum.xda-developers.com/showthread.php?t=2621751 "Discussion thread"
+
+CHANGELOG
+=========
+1.4
+Correct Icons in QuickSettings
+
+1.3
+Fixed Bug: Flashing icon in settings
+
+1.2
+Added posibility to choose where the icon should be visible
+
+1.0
+Initial Release
 
 TODO
 ====

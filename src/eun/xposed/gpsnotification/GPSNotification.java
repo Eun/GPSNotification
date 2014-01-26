@@ -113,9 +113,10 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			}
 			
 			// TODO: animation in QuickSettings
-			/*
-			if (LocationControllerClass)
+			
+			if (LocationControllerClass != null)
 			{
+				/*
 				QuickSettingsModelClass = XposedHelpers.findClass("com.android.systemui.statusbar.phone.QuickSettingsModel", lpparam.classLoader);
 				XposedHelpers.findAndHookMethod(QuickSettingsModelClass, "onLocationSettingsChanged", boolean.class, new XC_MethodHook() {
 					 @Override
@@ -130,12 +131,13 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 						 }
 						}
 						});
+				*/
 			}
-			if (QuickSettingsModelClass == null)
+			/*if (QuickSettingsModelClass == null)
 			{
 				XposedBridge.log("GPSNotification: QuickSettingsModel not found! Could not apply animation in Quicksettings.");
-			}
-			*/		
+			}*/
+					
 		}
 		else
 		{
@@ -179,8 +181,8 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			// Not fine, but works.
 			if (QuickSettingsModelClass == null)
 			{
-				resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_on", modRes.fwd(R.drawable.stat_sys_gps_on));
-				resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_off", modRes.fwd(R.drawable.stat_sys_gps_off));
+				resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_on", modRes.fwd(R.drawable.ic_qs_gps_on));
+				resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_off", modRes.fwd(R.drawable.ic_qs_gps_off));
 				//this.resparam = resparam;
 			}
 		}
