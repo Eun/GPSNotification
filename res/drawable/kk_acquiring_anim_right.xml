@@ -20,6 +20,6 @@
 <animation-list
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:oneshot="false">
-    <item android:drawable="@drawable/stat_sys_gps_acquiring" android:duration="500" />
-    <item android:drawable="@drawable/stat_sys_gps_on" android:duration="500" />
+    <item android:drawable="@drawable/kk_gps_acquiring_right" android:duration="500" />
+    <item android:drawable="@drawable/kk_gps_on_right" android:duration="500" />
 </animation-list>

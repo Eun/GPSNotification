@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="eun.xposed.gpsnotification"
-    android:versionCode="5"
-    android:versionName="1.4" >
+    android:versionCode="6"
+    android:versionName="1.5" >
 
     <uses-sdk
         android:minSdkVersion="19"
         android:targetSdkVersion="19" />
 
     <application
-        android:icon="@drawable/stat_sys_gps_on"
+        android:icon="@drawable/jb_gps_on_left"
         android:label="GPSNotification" >
         <meta-data
             android:name="xposedmodule"
@@ -23,7 +23,7 @@
 
         <activity
             android:name="eun.xposed.gpsnotification.SettingsActivity"
-            android:label="@string/title_activity_settings"
+            android:label="GPSNotification - Settings"
             android:exported="true" >
             <intent-filter>
 				<action android:name="android.intent.action.MAIN" />

@@ -33,17 +33,15 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	
 	private static String MODULE_PATH = null;
 	private Class<?> LocationControllerClass;
-	private Class<?> QuickSettingsModelClass;
 	private Context mContext;
 	private NotificationManager nm;
 	
-	int stat_sys_gps_on, stat_sys_gps_off, stat_sys_gps_on_right, // drawables
-		stat_sys_gps_acquiring_anim, stat_sys_gps_acquiring_anim_right, // animations
-		gps_notification_found_text, gps_notification_searching_text, accessibility_location_active; // texts
+	int gps_on, gps_anim, searching_text, found_text, accessibility_location_active; 
 	
 	//InitPackageResourcesParam resparam;
 	
 	private GPSIconPosition IconPos;
+	private int Icon;
 		
 	public enum GPSIconPosition
 	{
@@ -88,9 +86,10 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 		
 		if (Build.VERSION.SDK_INT >= 19)
 		{
-			LocationControllerClass = QuickSettingsModelClass = null;
+			LocationControllerClass = null;
 			XSharedPreferences prefs = new XSharedPreferences(PKG);
 			IconPos = GPSIconPosition.fromInteger(Integer.parseInt(prefs.getString("iconposition", String.valueOf(GPSIconPosition.getValue(GPSIconPosition.LEFT)))));
+			Icon = Integer.parseInt(prefs.getString("icon", String.valueOf(0)));
 			
 			LocationControllerClass = XposedHelpers.findClass("com.android.systemui.statusbar.policy.LocationController", lpparam.classLoader);
 			XposedBridge.hookAllConstructors(LocationControllerClass, new XC_MethodHook() {
@@ -163,27 +162,48 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 		if (Build.VERSION.SDK_INT >= 19 && LocationControllerClass != null)
 		{
 			XModuleResources modRes = XModuleResources.createInstance(MODULE_PATH, resparam.res);
-			stat_sys_gps_on = resparam.res.addResource(modRes, R.drawable.stat_sys_gps_on);
-			stat_sys_gps_on_right = resparam.res.addResource(modRes, R.drawable.stat_sys_gps_on_right);
-			stat_sys_gps_off  = resparam.res.addResource(modRes, R.drawable.stat_sys_gps_off);
-			
-			stat_sys_gps_acquiring_anim = resparam.res.addResource(modRes, R.drawable.stat_sys_gps_acquiring_anim);
-			stat_sys_gps_acquiring_anim_right = resparam.res.addResource(modRes, R.drawable.stat_sys_gps_acquiring_anim_right);
-			
-			gps_notification_searching_text = resparam.res.getIdentifier("gps_notification_searching_text", "string", resparam.packageName);
-			gps_notification_found_text  = resparam.res.getIdentifier("gps_notification_found_text", "string", resparam.packageName);
-			accessibility_location_active = resparam.res.getIdentifier("accessibility_location_active", "string", resparam.packageName);
-			
-			// replace whole resource (e.g. for tiles)
-			
-			// Just in case QuickSettingsModel is not found,
-			// we can do it a bit dirty and replace the resources at runtime.
-			// Not fine, but works.
-			if (QuickSettingsModelClass == null)
+			if (Icon == 0)
 			{
-				resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_on", modRes.fwd(R.drawable.ic_qs_gps_on));
-				resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_off", modRes.fwd(R.drawable.ic_qs_gps_off));
-				//this.resparam = resparam;
+				if (IconPos == GPSIconPosition.LEFT)
+				{
+					gps_on = resparam.res.addResource(modRes, R.drawable.jb_gps_on_left);
+					resparam.res.addResource(modRes, R.drawable.jb_gps_acquiring_left);
+					gps_anim = resparam.res.addResource(modRes, R.drawable.jb_acquiring_anim_left);
+				}
+				
+				if (IconPos == GPSIconPosition.RIGHT)
+				{
+					gps_on = resparam.res.addResource(modRes, R.drawable.jb_gps_on_right);
+					resparam.res.addResource(modRes, R.drawable.jb_gps_acquiring_right);
+					gps_anim = resparam.res.addResource(modRes, R.drawable.jb_acquiring_anim_right);
+				}
+				
+				searching_text = resparam.res.getIdentifier("gps_notification_searching_text", "string", resparam.packageName);
+				found_text  = resparam.res.getIdentifier("gps_notification_found_text", "string", resparam.packageName);
+				accessibility_location_active = resparam.res.getIdentifier("accessibility_location_active", "string", resparam.packageName);
+		
+				resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_on", modRes.fwd(R.drawable.jb_qs_gps_on));
+				resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_off", modRes.fwd(R.drawable.jb_qs_gps_off));
+			}
+			else
+			{
+				if (IconPos == GPSIconPosition.LEFT)
+				{
+					gps_on = resparam.res.addResource(modRes, R.drawable.kk_gps_on_left);
+					resparam.res.addResource(modRes, R.drawable.kk_gps_acquiring_left);
+					gps_anim = resparam.res.addResource(modRes, R.drawable.kk_acquiring_anim_left);
+				}
+				
+				if (IconPos == GPSIconPosition.RIGHT)
+				{
+					gps_on = resparam.res.addResource(modRes, R.drawable.kk_gps_on_right);
+					resparam.res.addResource(modRes, R.drawable.kk_gps_acquiring_right);
+					gps_anim = resparam.res.addResource(modRes, R.drawable.kk_acquiring_anim_right);
+				}
+				
+				searching_text = resparam.res.getIdentifier("gps_notification_searching_text", "string", resparam.packageName);
+				found_text  = resparam.res.getIdentifier("gps_notification_found_text", "string", resparam.packageName);
+				accessibility_location_active = resparam.res.getIdentifier("accessibility_location_active", "string", resparam.packageName);
 			}
 		}
 		
@@ -208,11 +228,8 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 
         if (action.equals(GPS_FIX_CHANGE_ACTION) && enabled) {
             // GPS is getting fixes
-        	 if (IconPos == GPSIconPosition.LEFT)
-        		 icon = stat_sys_gps_on;
-        	 else
-        		 icon = stat_sys_gps_on_right;
-            textResId = gps_notification_found_text;
+        	icon = gps_on;
+            textResId = found_text;
             visible = true;
         } else if (action.equals(GPS_ENABLED_CHANGE_ACTION) && !enabled) {
             // GPS is off
@@ -220,11 +237,8 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
             icon = textResId = 0;
         } else {
             // GPS is on, but not receiving fixes
-        	if (IconPos == GPSIconPosition.LEFT)
-        		icon = stat_sys_gps_acquiring_anim;
-        	else
-        		icon = stat_sys_gps_acquiring_anim_right;
-            textResId = gps_notification_searching_text;
+        	icon = gps_anim;
+            textResId = searching_text;
             visible = true;
         }
         
