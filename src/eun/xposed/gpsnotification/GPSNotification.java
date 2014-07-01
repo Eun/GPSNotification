@@ -239,7 +239,9 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			});
 			
 			
-			resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_on", new XResources.DrawableLoader() {
+			// quicksettings blinking
+			
+			XResources.DrawableLoader qs_location_on = new XResources.DrawableLoader() {
 			    @Override
 			    public Drawable newDrawable(XResources res, int id) throws Throwable {			    	
 			    	quicksettings_icon = new AnimationDrawable2();
@@ -254,7 +256,12 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			    	quicksettings_icon.selectDrawable(0);
 			    	return quicksettings_icon;
 			    }
-			});
+			};
+			
+			
+			resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_on", qs_location_on);
+			resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_on_gps", qs_location_on); 
+			resparam.res.setReplacement("com.android.systemui", "drawable", "ic_qs_location_on_wifi", qs_location_on); 
 			
 		}
 		
@@ -282,29 +289,38 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
         	icon = gps_on;
             textResId = found_text;
             visible = true;
-            quicksettings_icon.stop();
-            quicksettings_icon.selectDrawable(1);
-            quicksettings_icon.skipFrame(0, false);
-            quicksettings_icon.skipFrame(1, true);
-	    	quicksettings_icon.skipFrame(2, false);
+            if (quicksettings_icon != null)
+            {
+	            quicksettings_icon.stop();
+	            quicksettings_icon.selectDrawable(1);
+	            quicksettings_icon.skipFrame(0, false);
+	            quicksettings_icon.skipFrame(1, true);
+		    	quicksettings_icon.skipFrame(2, false);
+            }
         } else if (action.equals(GPS_ENABLED_CHANGE_ACTION) && !enabled) {
             // GPS is off
             visible = false;
             icon = textResId = 0;
-            quicksettings_icon.stop();
-            quicksettings_icon.selectDrawable(0);
-            quicksettings_icon.skipFrame(0, false);
-            quicksettings_icon.skipFrame(1, false);
-	    	quicksettings_icon.skipFrame(2, false);
+            if (quicksettings_icon != null)
+            {
+	            quicksettings_icon.stop();
+	            quicksettings_icon.selectDrawable(0);
+	            quicksettings_icon.skipFrame(0, false);
+	            quicksettings_icon.skipFrame(1, false);
+		    	quicksettings_icon.skipFrame(2, false);
+            }
         } else {
             // GPS is on, but not receiving fixes
         	icon = gps_anim;
             textResId = searching_text;
             visible = true;
-            quicksettings_icon.skipFrame(0, true);
-            quicksettings_icon.skipFrame(1, false);
-	    	quicksettings_icon.skipFrame(2, false);
-            quicksettings_icon.start();
+            if (quicksettings_icon != null)
+            {
+	            quicksettings_icon.skipFrame(0, true);
+	            quicksettings_icon.skipFrame(1, false);
+		    	quicksettings_icon.skipFrame(2, false);
+	            quicksettings_icon.start();
+            }
         }
         
        

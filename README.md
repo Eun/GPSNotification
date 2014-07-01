@@ -11,6 +11,9 @@ Needs the [Xposed Framework](http://xposed.info)
 
 CHANGELOG
 =========
+1.6
+Improved quicksettings icons
+Added Animation speed
 
 1.5
 Added KitKat Icon
@@ -30,9 +33,6 @@ Initial Release
 
 TODO
 ====
-* Animated GPS Icon in QuickSettings
-* Turn Icon white when turned on (QucikSettings) (DreamScar)
-* Set interval for blinking (scott_doyland)
 * Hide notification text for Left Icon (when gps found) (s3icc0)
 * Quicktoggle low power (Mardon)
 * GPS status (Arkon79)
