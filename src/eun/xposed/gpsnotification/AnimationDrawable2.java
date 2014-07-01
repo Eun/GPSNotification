@@ -223,14 +223,20 @@ public class AnimationDrawable2 extends DrawableContainer2 implements Runnable, 
     
     private void nextFrame(boolean unschedule) {
         int next = mCurFrame+1;
+        	 
+        
         final int N = mAnimationState.getChildCount();
         if (next >= N) {
             next = 0;
         }
-        
-        while(next < SkipFrames.size() - 1 && SkipFrames.get(next) == true)
+
+        // possible deadlock when all frames are disabled
+        while(SkipFrames.get(next) == true)
         {
         	next++;
+        	if (next >= N) {
+                next = 0;
+            }
         }
         
         setFrame(next, unschedule, !mAnimationState.mOneShot || next < (N - 1));
