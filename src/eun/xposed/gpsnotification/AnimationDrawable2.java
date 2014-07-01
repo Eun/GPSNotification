@@ -16,20 +16,14 @@
 
 package eun.xposed.gpsnotification;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.DrawableContainer;
 import android.os.SystemClock;
-import android.util.AttributeSet;
 
 /**
  * 

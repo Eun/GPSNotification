@@ -1,5 +1,4 @@
 package eun.xposed.gpsnotification;
-import java.lang.reflect.Field;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -10,13 +9,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.XModuleResources;
 import android.content.res.XResources;
-import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.provider.Settings;
-import android.view.animation.Animation;
 import de.robv.android.xposed.IXposedHookInitPackageResources;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
