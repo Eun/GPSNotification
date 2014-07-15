@@ -11,6 +11,13 @@ Needs the [Xposed Framework](http://xposed.info)
 
 CHANGELOG
 =========
+* 1.7
+  * fixed CM11 (Resource) bug
+  * fixed invisible bug in quicksettings
+  * added permamode
+  * added GPSStatus in notification
+  * added German Translation
+
 * 1.6
   * Improved quicksettings icons
   * Added Animation speed
@@ -33,6 +40,6 @@ CHANGELOG
 
 TODO
 ====
+* 3th Icon: Kitkat WIFI / GPS / Location Icon
 * <s>Hide notification text for Left Icon (when gps found) (s3icc0)</s>
   * Canceled: It is not possible to display notifications without text
-* GPS status (Arkon79)

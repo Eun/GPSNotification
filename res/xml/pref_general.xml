@@ -1,5 +1,22 @@
-	<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-	    
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+**
+** Copyright 2014, GPSNotification
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+**     http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+*/
+-->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">   
      <ListPreference
         android:entries="@array/pref_list_icon"
         android:entryValues="@array/pref_list_icon_values"
@@ -7,8 +24,7 @@
         android:key="icon"
         android:negativeButtonText="@null"
         android:positiveButtonText="@null"
-        android:title="@string/pref_title_icon" />
-        
+        android:title="@string/pref_title_icon" /> 
     <ListPreference
         android:entries="@array/pref_list_position"
         android:entryValues="@array/pref_list_position_values"
@@ -17,12 +33,21 @@
         android:negativeButtonText="@null"
         android:positiveButtonText="@null"
         android:title="@string/pref_title_position" />
-
+    <CheckBoxPreference 
+        android:defaultValue="false"
+  	    android:key="gpsstatus"
+  	    android:title="@string/pref_title_gpsstatus"
+  	    android:summary="@string/pref_summary_gpsstatus" />
+    <CheckBoxPreference 
+        android:defaultValue="false"
+  	    android:key="permamode"
+  	    android:title="@string/pref_title_permamode"
+  	    android:summary="@string/pref_summary_permamode" />
   	<EditTextPreference
   	    android:defaultValue="500"
   	    android:inputType="number"
   	    android:digits="0123456789"
   	    android:key="animationspeed"
   	    android:title="@string/pref_title_animationspeed" />
-
+     
 </PreferenceScreen>

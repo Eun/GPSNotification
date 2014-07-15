@@ -17,21 +17,21 @@
 */
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
-    <string name="settings_title">GPSNotification - Settings</string>
-    <string name="pref_header_general">General</string>
-    <string name="pref_title_position">Location of GPS icon (in statusbar)?</string>
-    <string name="pref_title_icon">Iconstyle</string>
-    <string name="pref_title_animationspeed">Animation speed</string>
-    <string name="pref_title_permamode">Permamode</string>
-    <string name="pref_summary_permamode">Show icon permanent (regadless of use)</string>
+    <string name="settings_title">GPSNotification - Einstellungen</string>
+    <string name="pref_header_general">Allgemein</string>
+    <string name="pref_title_position">Ort des Symbols (in der Statusbar)?</string>
+    <string name="pref_title_icon">Symbolstil</string>
+    <string name="pref_title_animationspeed">Animationsgeschwindigkeit</string>
+    <string name="pref_title_permamode">Permanentmodus</string>
+    <string name="pref_summary_permamode">Symbol permanent zeigen (unabhängig von Nutzung)</string>
     <string name="pref_title_gpsstatus">GPS Status Information</string>
-    <string name="pref_summary_gpsstatus">Show gps information in notification. Such as connected satellites, longitude, latitude.</string>
-    <string name="notification_restart">You have to restart your device to apply the changes.</string>
+    <string name="pref_summary_gpsstatus">GPS-Informationen in Benachtichtigung zeigen. z.B. verbundene Satelliten, Longitude, Latitude.</string>
+    <string name="notification_restart">Du must dein Gerät neustarten damit die Änderungen wirksam werden.</string>
     
     <string-array name="pref_list_position">
-        <item>Invisible</item>
-        <item>Left</item>
-        <item>Right</item>
+        <item>Unsichtbar</item>
+        <item>Links</item>
+        <item>Rechts</item>
     </string-array>
     
     <string-array name="pref_list_position_values">
@@ -41,8 +41,8 @@
     </string-array>
     
     <string-array name="pref_list_icon">
-        <item>JellyBean Icon</item>
-        <item>KitKat Icon</item>
+        <item>JellyBean Symbol</item>
+        <item>KitKat Symbol</item>
     </string-array>
     
     <string-array name="pref_list_icon_values">

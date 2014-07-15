@@ -16,6 +16,9 @@
 ** limitations under the License.
 */
 -->
-<resources>
-    <item name="animation_icon" type="id"/>
+<resources  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="appname">GPSNotification</string>
+    <string name="xposeddescription">Brings the JellyBean GPS Notification back.</string>
+    <string name="north">N</string>
+    <string name="east">E</string>
 </resources>
