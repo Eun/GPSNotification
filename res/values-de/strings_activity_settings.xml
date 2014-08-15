@@ -27,7 +27,8 @@
     <string name="pref_title_gpsstatus">GPS Status Information</string>
     <string name="pref_summary_gpsstatus">GPS-Informationen in Benachtichtigung zeigen. z.B. verbundene Satelliten, Longitude, Latitude.</string>
     <string name="notification_restart">Du must dein Gerät neustarten damit die Änderungen wirksam werden.</string>
-    
+    <string name="pref_replace_quicksettings">QuickSettings Kachel ersetzen</string>
+    <string name="pref_summary_replace_quicksettings">Die Kachel in QuickSettings mit einer neuen ersetzen.</string>
     <string-array name="pref_list_position">
         <item>Unsichtbar</item>
         <item>Links</item>

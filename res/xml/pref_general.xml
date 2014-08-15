@@ -43,6 +43,11 @@
   	    android:key="permamode"
   	    android:title="@string/pref_title_permamode"
   	    android:summary="@string/pref_summary_permamode" />
+    <CheckBoxPreference 
+        android:defaultValue="true"
+  	    android:key="replace_quicksettings"
+  	    android:title="@string/pref_replace_quicksettings"
+  	    android:summary="@string/pref_summary_replace_quicksettings" />
   	<EditTextPreference
   	    android:defaultValue="500"
   	    android:inputType="number"

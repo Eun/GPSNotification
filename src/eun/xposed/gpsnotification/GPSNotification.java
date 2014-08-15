@@ -87,7 +87,7 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	private GPSIconStyle mIcon;
 	private int mAnimationSpeed;
 	private Boolean mPermamode;
-	private Boolean mGPSStatus;
+	private Boolean mQSTile;
 	
 	private Object mStatusBarManager;
 	private Notification.Builder NotificationBuilder = null;
@@ -170,14 +170,15 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			mIconPos = GPSIconPosition.fromInteger(Integer.parseInt(prefs.getString("iconposition", String.valueOf(GPSIconPosition.getValue(GPSIconPosition.LEFT)))));
 			mIcon = GPSIconStyle.fromInteger(Integer.parseInt(prefs.getString("icon", String.valueOf(GPSIconStyle.getValue(GPSIconStyle.JellyBean)))));
 			mPermamode = prefs.getBoolean("permamode", false);
-			mGPSStatus = prefs.getBoolean("gpsstatus", false);
+			mQSTile = prefs.getBoolean("replace_quicksettings", true);
 			
 			if (mIconPos == GPSIconPosition.NONE)
 				mPermamode = false;
 			
 			if (mIconPos != GPSIconPosition.LEFT)
-				mGPSStatus = false;
-			
+			{
+				prefs.edit().putBoolean("gpsstatus", false).commit();
+			}
 			
 			
 			
@@ -282,7 +283,8 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 				qs_gps_on = resparam.res.addResource(modRes, R.drawable.jb_qs_gps_on);
 				qs_gps_acquiring1 = resparam.res.addResource(modRes, R.drawable.jb_qs_gps_acquiring1);
 				qs_gps_acquiring2 = resparam.res.addResource(modRes, R.drawable.jb_qs_gps_acquiring2);
-				resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_off", modRes.fwd(R.drawable.jb_qs_gps_off));
+				if (mQSTile)
+					resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_off", modRes.fwd(R.drawable.jb_qs_gps_off));
 			}
 			else /*if (Icon == GPSIconStyle.KitKat)*/
 			{
@@ -302,7 +304,8 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 				qs_gps_on = resparam.res.addResource(modRes, R.drawable.kk_qs_gps_on);
 				qs_gps_acquiring1 = resparam.res.addResource(modRes, R.drawable.kk_qs_gps_acquiring1);
 				qs_gps_acquiring2 = resparam.res.addResource(modRes, R.drawable.kk_qs_gps_acquiring2);
-				resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_off", modRes.fwd(R.drawable.kk_qs_gps_off));
+				if (mQSTile)
+					resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_off", modRes.fwd(R.drawable.kk_qs_gps_off));
 			}
 			
 			searching_text = resparam.res.getIdentifier("gps_notification_searching_text", "string", resparam.packageName);
@@ -326,31 +329,33 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 				});
 			}
 						
-			
-			// quicksettings blinking
-			XResources.DrawableLoader qs_location_on = new XResources.DrawableLoader() {
-			    @Override
-			    public Drawable newDrawable(XResources res, int id) throws Throwable {	
-			    	if (quicksettings_icon == null)
-			    	{
-				    	quicksettings_icon = new AnimationDrawable2();
-				    	quicksettings_icon.addFrame(res.getDrawable(qs_gps_on), mAnimationSpeed);
-				    	quicksettings_icon.addFrame(res.getDrawable(qs_gps_acquiring1), mAnimationSpeed);
-				    	quicksettings_icon.addFrame(res.getDrawable(qs_gps_acquiring2), mAnimationSpeed);
-				    	quicksettings_icon.skipFrame(0, false);
-				    	quicksettings_icon.skipFrame(1, true);
-				    	quicksettings_icon.skipFrame(2, true);
-				    	quicksettings_icon.setOneShot(false);
-				    	quicksettings_icon.stop();
-				    	quicksettings_icon.selectDrawable(0);
-			    	}
-			    	return quicksettings_icon;
-			    }
-			};
-			
-			resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on", qs_location_on);
-			resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on_gps", qs_location_on); 
-			resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on_wifi", qs_location_on);              
+			if (mQSTile)
+			{
+				// quicksettings blinking
+				XResources.DrawableLoader qs_location_on = new XResources.DrawableLoader() {
+				    @Override
+				    public Drawable newDrawable(XResources res, int id) throws Throwable {	
+				    	if (quicksettings_icon == null)
+				    	{
+					    	quicksettings_icon = new AnimationDrawable2();
+					    	quicksettings_icon.addFrame(res.getDrawable(qs_gps_on), mAnimationSpeed);
+					    	quicksettings_icon.addFrame(res.getDrawable(qs_gps_acquiring1), mAnimationSpeed);
+					    	quicksettings_icon.addFrame(res.getDrawable(qs_gps_acquiring2), mAnimationSpeed);
+					    	quicksettings_icon.skipFrame(0, false);
+					    	quicksettings_icon.skipFrame(1, true);
+					    	quicksettings_icon.skipFrame(2, true);
+					    	quicksettings_icon.setOneShot(false);
+					    	quicksettings_icon.stop();
+					    	quicksettings_icon.selectDrawable(0);
+				    	}
+				    	return quicksettings_icon;
+				    }
+				};
+				
+				resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on", qs_location_on);
+				resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on_gps", qs_location_on);
+				resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on_wifi", qs_location_on);
+			}
 		}
 	}
 	
@@ -467,7 +472,7 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			}
 		
 			
-			return String.format("%d¡%d'%d\"%s %d¡%d'%d\"%s @%dm ±%dm", 
+			return String.format("%dï¿½%d'%d\"%s %dï¿½%d'%d\"%s @%dm ï¿½%dm", 
 					latDegrees, latMinutes, latSeconds,	(ModResources == null) ? "N" : ModResources.getString(R.string.north),
 					longDegrees, longMinutes, longSeconds, (ModResources == null) ? "E" : ModResources.getString(R.string.east),
 					(int)alt, (int)location.getAccuracy());
@@ -525,7 +530,7 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			{
             	textResId = found_text;
 			}
-            if (quicksettings_icon != null)
+            if (mQSTile && quicksettings_icon != null)
             {
 	            quicksettings_icon.stop();
 	            quicksettings_icon.selectDrawable(1);
@@ -549,7 +554,7 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	            icon = gps_on;
 	            textResId = quick_settings_location_label;
 	     	}
-            if (quicksettings_icon != null)
+            if (mQSTile && quicksettings_icon != null)
             {
 	            quicksettings_icon.stop();
 	            quicksettings_icon.selectDrawable(0);
@@ -569,7 +574,7 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			{
             	textResId = searching_text;
 			}
-            if (quicksettings_icon != null)
+            if (mQSTile && quicksettings_icon != null)
             {
 	            quicksettings_icon.skipFrame(0, true);
 	            quicksettings_icon.skipFrame(1, false);

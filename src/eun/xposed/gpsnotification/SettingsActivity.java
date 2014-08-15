@@ -41,7 +41,8 @@ public class SettingsActivity extends PreferenceActivity {
 	private Preference animationspeed;
 	private Preference permamode;
 	private Preference gpsstatus;
-	private Object dIconPosition, dIcon, dAnimationSpeed, dPermaMode, dGpsStatus;
+	private Preference qstile;
+	private Object dIconPosition, dIcon, dAnimationSpeed, dPermaMode, dGpsStatus, dQSTile;
 	private Boolean bInit;
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -58,6 +59,7 @@ public class SettingsActivity extends PreferenceActivity {
 		animationspeed = findPreference("animationspeed");
 		permamode = findPreference("permamode");
 		gpsstatus = findPreference("gpsstatus");
+		qstile = findPreference("replace_quicksettings");
 		
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
@@ -66,25 +68,28 @@ public class SettingsActivity extends PreferenceActivity {
 		dAnimationSpeed = prefs.getString("animationspeed", "500");
 		dPermaMode = prefs.getBoolean("permamode", false);
 		dGpsStatus = prefs.getBoolean("gpsstatus", false);
+		dQSTile = prefs.getBoolean("replace_quicksettings", true);
 		
 		bindPreferenceSummaryToValue(iconposition, dIconPosition);
 		bindPreferenceSummaryToValue(icon, dIcon);
 		bindPreferenceSummaryToValue(animationspeed, dAnimationSpeed);
 		bindPreferenceSummaryToValue(permamode, dPermaMode);
 		bindPreferenceSummaryToValue(gpsstatus, dGpsStatus);
+		bindPreferenceSummaryToValue(qstile, dQSTile);
 		bInit = true;
 	}
 	
 	private Boolean SettingsModified()
 	{
-		Object dIconPosition, dIcon, dAnimationSpeed, dPermaMode, dGpsStatus;
+		Object dIconPosition, dIcon, dAnimationSpeed, dPermaMode, dGpsStatus, dQSTile;
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		dIconPosition = prefs.getString("iconposition", "1");
 		dIcon = prefs.getString("icon", "0");
 		dAnimationSpeed = prefs.getString("animationspeed", "500");
 		dPermaMode = prefs.getBoolean("permamode", false);
 		dGpsStatus = prefs.getBoolean("gpsstatus", false);
-		return !(dIconPosition.equals(this.dIconPosition) && dIcon.equals(this.dIcon) && dAnimationSpeed.equals(this.dAnimationSpeed) && dPermaMode.equals(this.dPermaMode) && dGpsStatus.equals(this.dGpsStatus));
+		dQSTile = prefs.getBoolean("qstile", true);
+		return !(dIconPosition.equals(this.dIconPosition) && dIcon.equals(this.dIcon) && dAnimationSpeed.equals(this.dAnimationSpeed) && dPermaMode.equals(this.dPermaMode) && dGpsStatus.equals(this.dGpsStatus) && dQSTile.equals(this.dQSTile));
 	}
 	
 	@Override

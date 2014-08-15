@@ -27,7 +27,8 @@
     <string name="pref_title_gpsstatus">GPS Status Information</string>
     <string name="pref_summary_gpsstatus">Show gps information in notification. Such as connected satellites, longitude, latitude.</string>
     <string name="notification_restart">You have to restart your device to apply the changes.</string>
-    
+    <string name="pref_replace_quicksettings">Replace QuickSettings Tile</string>
+    <string name="pref_summary_replace_quicksettings">Replace the Tile in QuickSettings with a new one.</string>
     <string-array name="pref_list_position">
         <item>Invisible</item>
         <item>Left</item>
