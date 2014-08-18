@@ -19,13 +19,12 @@ package eun.xposed.gpsnotification;
 
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 import net.osmand.GeoidAltitudeCorrection;
-
-
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -96,7 +95,7 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	private Boolean mAcquiring = false;
 	private GeoidAltitudeCorrection geo = null;
 	private Resources ModResources;
-	
+
 	public enum GPSIconPosition
 	{
 		NONE,
@@ -252,6 +251,8 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 				hookSystemService("android.app.ContextImpl");
 				hookSystemService("android.app.Activity");
 			}
+			
+			
 		}
 	}
 
@@ -351,10 +352,30 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 				    	return quicksettings_icon;
 				    }
 				};
-				
-				resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on", qs_location_on);
-				resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on_gps", qs_location_on);
-				resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on_wifi", qs_location_on);
+				try
+				{
+					resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on", qs_location_on);
+				}
+				catch (Exception e)
+				{
+					
+				}
+				try
+				{
+					resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on_gps", qs_location_on);
+				}
+				catch (Exception e)
+				{
+					
+				}
+				try
+				{
+					resparam.res.setReplacement(SYSTEMPKG, "drawable", "ic_qs_location_on_wifi", qs_location_on);
+				}
+				catch (Exception e)
+				{
+					
+				}
 			}
 		}
 	}
@@ -415,6 +436,9 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 
 	private void handleGetSystemService(String name, Object instance) {
 		if (name.equals(Context.LOCATION_SERVICE) && mLocationManagerHooked == false) {
+			Context mContext = (Context)XposedHelpers.getObjectField(instance, "mContext");
+			if (mContext.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+			{
 				try
 				{
 					Class<?> hookClass = null;
@@ -427,7 +451,8 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 				catch (Exception ex)
 				{
 				}
-				mLocationManagerHooked = true;
+			}
+			mLocationManagerHooked = true;
 		}
 	}
 
