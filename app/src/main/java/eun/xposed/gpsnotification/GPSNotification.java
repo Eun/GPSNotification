@@ -18,14 +18,6 @@
 package eun.xposed.gpsnotification;
 
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
-import net.osmand.GeoidAltitudeCorrection;
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -34,7 +26,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.content.res.XModuleResources;
 import android.content.res.XResources;
@@ -47,6 +38,11 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.text.Html;
+
+import net.osmand.GeoidAltitudeCorrection;
+
+import java.util.Iterator;
+
 import de.robv.android.xposed.IXposedHookInitPackageResources;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
@@ -58,10 +54,11 @@ import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_InitPackageResources.InitPackageResourcesParam;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
-public class GPSNotification  extends BroadcastReceiver implements IXposedHookLoadPackage, IXposedHookZygoteInit, IXposedHookInitPackageResources, GpsStatus.Listener {
+public class GPSNotification implements IXposedHookLoadPackage, IXposedHookZygoteInit, IXposedHookInitPackageResources {
 	
 	// Constants
-	public static final String PKG = "eun.xposed.gpsnotification";
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+	public static final String PKG = BuildConfig.APPLICATION_ID;
 	public static final String ACTION_BROADCAST = PKG + ".BROADCAST";
 	private static final String GPS_ENABLED_CHANGE_ACTION = "android.location.GPS_ENABLED_CHANGE";
 	private static final String GPS_FIX_CHANGE_ACTION = "android.location.GPS_FIX_CHANGE";
@@ -69,12 +66,24 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	private static final int GPS_NOTIFICATION_ID = 374203-122084;
 	private static final String LOCATION_STATUS_ICON_PLACEHOLDER = "location";
 	private static final String SYSTEMPKG = "com.android.systemui";
+    private static final String TAG = "GPSNotification";
+
+    public static final String SETTING_ICONPOSITION = "iconposition";
+    public static final String SETTING_ICON = "icon";
+    public static final String SETTING_PERMAMODE = "permamode";
+    public static final String SETTING_QUICKSETTINGS = "replace_quicksettings";
+    public static final String SETTING_SHOW_GPS_STATUS = "gpsstatus";
+    public static final String SETTING_ANIMATION_SPEED = "animationspeed";
 	
 	private static String MODULE_PATH = null;
 	private Class<?> LocationControllerClass;
 	private Class<?> ResourceClass;
-	private Context mContext;
-	private NotificationManager nm;
+
+	private Context mContext = null;
+    private LocationManager mLocationManager = null;
+    private GpsStatus mGpsStatus = null;
+
+	private NotificationManager mNotificationManager;
 	
 	private int gps_on, gps_anim, gps_acquiring;
 	private int searching_text, found_text, accessibility_location_active, quick_settings_location_label; 
@@ -87,10 +96,10 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	private int mAnimationSpeed;
 	private Boolean mPermamode;
 	private Boolean mQSTile;
+
 	
 	private Object mStatusBarManager;
 	private Notification.Builder NotificationBuilder = null;
-	private Boolean mLocationManagerHooked = false;
 	private Boolean mShowIcon = false;
 	private Boolean mAcquiring = false;
 	private GeoidAltitudeCorrection geo = null;
@@ -154,6 +163,11 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	}
 	
 
+
+    private static void log(String text)
+    {
+        XposedBridge.log(TAG + ": " + text);
+    }
 	
 	@Override
 	public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {		
@@ -166,22 +180,22 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			ResourceClass = null;
 			
 			XSharedPreferences prefs = new XSharedPreferences(PKG);
-			mIconPos = GPSIconPosition.fromInteger(Integer.parseInt(prefs.getString("iconposition", String.valueOf(GPSIconPosition.getValue(GPSIconPosition.LEFT)))));
-			mIcon = GPSIconStyle.fromInteger(Integer.parseInt(prefs.getString("icon", String.valueOf(GPSIconStyle.getValue(GPSIconStyle.JellyBean)))));
-			mPermamode = prefs.getBoolean("permamode", false);
-			mQSTile = prefs.getBoolean("replace_quicksettings", true);
+			mIconPos = GPSIconPosition.fromInteger(Integer.parseInt(prefs.getString(SETTING_ICONPOSITION, String.valueOf(GPSIconPosition.getValue(GPSIconPosition.LEFT)))));
+			mIcon = GPSIconStyle.fromInteger(Integer.parseInt(prefs.getString(SETTING_ICON, String.valueOf(GPSIconStyle.getValue(GPSIconStyle.JellyBean)))));
+			mPermamode = prefs.getBoolean(SETTING_PERMAMODE, false);
+			mQSTile = prefs.getBoolean(SETTING_QUICKSETTINGS, true);
 			
 			if (mIconPos == GPSIconPosition.NONE)
 				mPermamode = false;
 			
 			if (mIconPos != GPSIconPosition.LEFT)
 			{
-				prefs.edit().putBoolean("gpsstatus", false).commit();
+				prefs.edit().putBoolean(SETTING_SHOW_GPS_STATUS, false).commit();
 			}
 			
 			
 			
-			mAnimationSpeed = Integer.parseInt(prefs.getString("animationspeed", String.valueOf(500)));
+			mAnimationSpeed = Integer.parseInt(prefs.getString(SETTING_ANIMATION_SPEED, String.valueOf(500)));
 			
 			LocationControllerClass = XposedHelpers.findClass("com.android.systemui.statusbar.policy.LocationController", lpparam.classLoader);
 			XposedBridge.hookAllConstructors(LocationControllerClass, new XC_MethodHook() {
@@ -192,8 +206,8 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 		             filter.addAction(GPS_ENABLED_CHANGE_ACTION);
 		             filter.addAction(GPS_FIX_CHANGE_ACTION);
 		             filter.addAction(ACTION_BROADCAST);
-		             mContext.registerReceiver(GPSNotification.this, filter);
-	                 nm = (NotificationManager)mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+		             mContext.registerReceiver(mBroadcastReciver, filter);
+                     mNotificationManager = (NotificationManager)mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 	                 mStatusBarManager = XposedHelpers.getObjectField(param.thisObject, "mStatusBarManager");
 	                }
 				 });
@@ -216,11 +230,11 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			
 			if (LocationControllerClass == null)
 			{
-				XposedBridge.log("GPSNotification: LocationController Class not found! Could not apply Notification.");
+				log("LocationController Class not found! Could not apply Notification.");
 			}	
 			if (ResourceClass == null)
 			{
-				XposedBridge.log("GPSNotification: Resource Class not found! Could not apply Notification.");
+				log("Resource Class not found! Could not apply Notification.");
 			}
 			
 		    
@@ -235,30 +249,46 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 	}
 	
 	@Override
-	public void initZygote(StartupParam startupParam) throws Throwable {
+	public void initZygote(StartupParam startupParam) {
 		if (Build.VERSION.SDK_INT >= 19)
 		{
 			MODULE_PATH = startupParam.modulePath;
 			
 			XSharedPreferences prefs = new XSharedPreferences(PKG);
-			GPSIconPosition mIconPos = GPSIconPosition.fromInteger(Integer.parseInt(prefs.getString("iconposition", String.valueOf(GPSIconPosition.getValue(GPSIconPosition.LEFT)))));
-			Boolean mGPSStatus = prefs.getBoolean("gpsstatus", false);
+			GPSIconPosition mIconPos = GPSIconPosition.fromInteger(Integer.parseInt(prefs.getString(SETTING_ICONPOSITION, String.valueOf(GPSIconPosition.getValue(GPSIconPosition.LEFT)))));
+			Boolean showGpsStatus = prefs.getBoolean(SETTING_SHOW_GPS_STATUS, false);
 			if (mIconPos != GPSIconPosition.LEFT)
-				mGPSStatus = false;
+                showGpsStatus = false;
 			
-			if (mGPSStatus)
+			if (showGpsStatus)
 			{
-				hookSystemService("android.app.ContextImpl");
-				hookSystemService("android.app.Activity");
+                XposedHelpers.findAndHookMethod(LocationManager.class, "addGpsStatusListener", GpsStatus.Listener.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        if ((Boolean)param.getResult() == true) {
+                            mContext = android.app.AndroidAppHelper.currentApplication().getApplicationContext();
+                            if (mContext == null)
+                                return;
+                            mLocationManager = (LocationManager) param.thisObject;
+                            GpsStatus.Listener listener = (GpsStatus.Listener)param.args[0];
+                            XposedHelpers.findAndHookMethod(listener.getClass(), "onGpsStatusChanged", int.class, onGpsStatusChanged);
+                        }
+                    }
+                });
+
+                XposedHelpers.findAndHookMethod(LocationManager.class, "getGpsStatus", GpsStatus.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        mGpsStatus = (GpsStatus)param.getResult();
+                    }
+                });
 			}
-			
-			
 		}
 	}
 
 	
 	@Override
-	public void handleInitPackageResources(InitPackageResourcesParam resparam) throws Throwable {
+	public void handleInitPackageResources(InitPackageResourcesParam resparam) {
 		if (!resparam.packageName.equals(SYSTEMPKG))
 			return;
 		
@@ -379,82 +409,6 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			}
 		}
 	}
-	
-	
-	private void hookSystemService(String context) {
-		try {
-			XC_MethodHook methodHook = new XC_MethodHook() {
-					@Override
-					protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-					}
-
-					@Override
-					protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-						if (!param.hasThrowable())
-							try {
-								if (param.args.length > 0 && param.args[0] != null) {
-									// XposedBridge.log("Hook Method : " + mInstance + " " + mApp + " " + packageName);
-									String name = (String) param.args[0];
-									Object instance = param.getResult();
-									if (name != null && instance != null) {
-										handleGetSystemService(name, instance);
-									}
-								}
-							} catch (Throwable ex) {
-								throw ex;
-							}
-					}
-				};
-
-			Set<XC_MethodHook.Unhook> hookSet = new HashSet<XC_MethodHook.Unhook>();
-
-			Class<?> hookClass = null;
-			try {
-				hookClass = XposedHelpers.findClass(context, null);
-				if (hookClass == null)
-					throw new ClassNotFoundException(context);
-				// XposedBridge.log("Zygote Context Find Class Done");
-			} catch (Exception ex) {
-				// XposedBridge.log("Zygote Context Impl Exception " + ex);
-			}
-
-			// XposedBridge.log("Zygote Context Find Class " + hookClass);
-			Class<?> clazz = hookClass;
-			while (clazz != null) {
-				for (Method method : clazz.getDeclaredMethods()) {
-					if (method != null && method.getName().equals("getSystemService")) {
-						hookSet.add(XposedBridge.hookMethod(method, methodHook));
-					}
-				}
-				clazz = (hookSet.isEmpty() ? clazz.getSuperclass() : null);
-			}
-		} catch (Exception ex) {
-			// XposedBridge.log("Zygote Context Hook Exception " + ex);
-		}
-    }
-
-
-	private void handleGetSystemService(String name, Object instance) {
-		if (name.equals(Context.LOCATION_SERVICE) && mLocationManagerHooked == false) {
-			Context mContext = (Context)XposedHelpers.getObjectField(instance, "mContext");
-			if (mContext.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-			{
-				try
-				{
-					Class<?> hookClass = null;
-					hookClass = XposedHelpers.findClass(instance.getClass().getName(), null);
-					if (hookClass != null)
-					{
-						XposedHelpers.callMethod(instance, "addGpsStatusListener", GPSNotification.this);
-					}	
-				}
-				catch (Exception ex)
-				{
-				}
-			}
-			mLocationManagerHooked = true;
-		}
-	}
 
 	private String getPosition(Location location){
 
@@ -497,210 +451,179 @@ public class GPSNotification  extends BroadcastReceiver implements IXposedHookLo
 			}
 		
 			
-			return String.format("%d�%d'%d\"%s %d�%d'%d\"%s @%dm �%dm", 
-					latDegrees, latMinutes, latSeconds,	(ModResources == null) ? "N" : ModResources.getString(R.string.north),
-					longDegrees, longMinutes, longSeconds, (ModResources == null) ? "E" : ModResources.getString(R.string.east),
-					(int)alt, (int)location.getAccuracy());
+			return String.format("%d%c%d'%d\"%s %d%c%d'%d\"%s @%dm %c%dm",
+					latDegrees, 0x00B0, latMinutes, latSeconds,	(ModResources == null) ? "N" : ModResources.getString(R.string.north),
+					longDegrees, 0x00B0, longMinutes, longSeconds, (ModResources == null) ? "E" : ModResources.getString(R.string.east),
+					(int)alt, 0x00B1, (int)location.getAccuracy());
 		}
 		else
 			return "";
 	}
-	
-	@Override
-	public void onReceive(Context context, Intent intent) {
-		final String action = intent.getAction();
-		
-		if (action.equals(ACTION_BROADCAST))
-		{
-			if (mShowIcon)
-			{
-				int event = intent.getIntExtra("event", 0);
-				int satInView = intent.getIntExtra("satInView", 0);
-				int satInUse = intent.getIntExtra("satInUse", 0);
-				Location location = (Location)intent.getExtras().get("location");
-				
-				if (event == GpsStatus.GPS_EVENT_SATELLITE_STATUS)
-				{										
-					if (mAcquiring == true)
-					{
-						NotificationBuilder.setContentText(Html.fromHtml("<b>SAT "+satInUse+"/"+satInView+"</b>"));
-					}
-					else
-					{
-						CharSequence message = Html.fromHtml("<b>SAT "+satInUse+"/"+satInView+"</b><br/>"+getPosition(location));
-						
-						NotificationBuilder.setStyle(new Notification.BigTextStyle()
-				         .bigText(message));
-						NotificationBuilder.setContentText(message);
-					}
-					Notification n = NotificationBuilder.build();
-		            n.tickerView = null;
-		            n.tickerText = null;
-		            nm.notify(GPS_NOTIFICATION_ID, n);
-				}
-			}
-			return;
-		}
-		
-        final boolean enabled = intent.getBooleanExtra(EXTRA_GPS_ENABLED, false);
 
-        int textResId = 0, icon;
 
-        if (action.equals(GPS_FIX_CHANGE_ACTION) && enabled)
-        {
-            // GPS is getting fixes
-        	icon = gps_on;
-        	mShowIcon = true;
-            if (mIconPos == GPSIconPosition.LEFT)
-			{
-            	textResId = found_text;
-			}
-            if (mQSTile && quicksettings_icon != null)
-            {
-	            quicksettings_icon.stop();
-	            quicksettings_icon.selectDrawable(1);
-	            quicksettings_icon.skipFrame(0, false);
-	            quicksettings_icon.skipFrame(1, true);
-		    	quicksettings_icon.skipFrame(2, false);
-            }
-            mAcquiring = false;
-        }
-        else if (action.equals(GPS_ENABLED_CHANGE_ACTION) && !enabled)
-        {
-            // GPS is off
-        	if (mPermamode == false)
-        	{
-        		mShowIcon = false;
-	            icon = textResId = 0;
-        	}
-        	else
-        	{
-        		mShowIcon = true;
-	            icon = gps_on;
-	            textResId = quick_settings_location_label;
-	     	}
-            if (mQSTile && quicksettings_icon != null)
-            {
-	            quicksettings_icon.stop();
-	            quicksettings_icon.selectDrawable(0);
-	            quicksettings_icon.skipFrame(0, false);
-	            quicksettings_icon.skipFrame(1, false);
-		    	quicksettings_icon.skipFrame(2, false);
-            }
-            mAcquiring = false;
-        }
-        else
-        {
-            // GPS is on, but not receiving fixes
-        	icon = gps_anim;
-        	mShowIcon = true;
-        	mAcquiring = true;
-            if (mIconPos == GPSIconPosition.LEFT)
-			{
-            	textResId = searching_text;
-			}
-            if (mQSTile && quicksettings_icon != null)
-            {
-	            quicksettings_icon.skipFrame(0, true);
-	            quicksettings_icon.skipFrame(1, false);
-		    	quicksettings_icon.skipFrame(2, false);
-	            quicksettings_icon.start();
-            }
-        }
-        
-       
-        
-        if (mIconPos == GPSIconPosition.LEFT)
-        {
-	        try
-	        {
-	            if (mShowIcon)
-	            {
-	                Intent gpsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-	                gpsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	                PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, gpsIntent, 0);
-	
-	                NotificationBuilder = new Notification.Builder(mContext)
-	                    .setSmallIcon(icon)
-	                    .setContentTitle(mContext.getText(textResId))
-	                    .setOngoing(true)
-	                    //.setWhen(0)
-	                    .setShowWhen(false)
-	                    .setContentIntent(pendingIntent);
-	
-	               
-	                
-	                Notification n = NotificationBuilder.build();
-	                // Notification.Builder will helpfully fill these out for you no matter what you do
-	                n.tickerView = null;
-	                n.tickerText = null;
-	               
-	                nm.notify(GPS_NOTIFICATION_ID, n);  
-	            }
-	            else
-	            {
-	            	nm.cancel(GPS_NOTIFICATION_ID);
-	            };
-	        }
-	        catch (Exception ex)
-	        {
-	            // well, it was worth a shot
-	        }
-        }
-        else if (mIconPos == GPSIconPosition.RIGHT)
-		{
-			 if (mShowIcon)
-			 {
-				XposedHelpers.callMethod(mStatusBarManager, "setIcon", LOCATION_STATUS_ICON_PLACEHOLDER, icon, 0, mContext.getString(accessibility_location_active));
-			 }
-			 else
-			 {
-				XposedHelpers.callMethod(mStatusBarManager, "removeIcon", LOCATION_STATUS_ICON_PLACEHOLDER);
-			 }
-		}
-	}
 
-	@Override
-	public void onGpsStatusChanged(int event) {
-		Context context = android.app.AndroidAppHelper.currentApplication().getApplicationContext();
-		if (context == null)
-			return;
-	
-		LocationManager locationManager = ((LocationManager)context.getSystemService(Context.LOCATION_SERVICE));
-		if (locationManager == null)
-			return;
-		GpsStatus status = locationManager.getGpsStatus(null);
-	  
-    	if (status != null)
-    	{
-    		
-    		Iterable<GpsSatellite>satellites = status.getSatellites();
-            Iterator<GpsSatellite>sat = satellites.iterator();
+    private BroadcastReceiver mBroadcastReciver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (action.equals(ACTION_BROADCAST)) {
+                if (mShowIcon) {
+                    int event = intent.getIntExtra("event", 0);
+                    int satInView = intent.getIntExtra("satInView", 0);
+                    int satInUse = intent.getIntExtra("satInUse", 0);
+                    Location location = (Location) intent.getExtras().get("location");
+
+                    if (event == GpsStatus.GPS_EVENT_SATELLITE_STATUS) {
+                        if (mAcquiring == true) {
+                            NotificationBuilder.setContentText(Html.fromHtml("<b>SAT " + satInUse + "/" + satInView + "</b>"));
+                        } else {
+                            CharSequence message = Html.fromHtml("<b>SAT " + satInUse + "/" + satInView + "</b><br/>" + getPosition(location));
+
+                            NotificationBuilder.setStyle(new Notification.BigTextStyle()
+                                    .bigText(message));
+                            NotificationBuilder.setContentText(message);
+                        }
+                        Notification n = NotificationBuilder.build();
+                        n.tickerView = null;
+                        n.tickerText = null;
+                        mNotificationManager.notify(GPS_NOTIFICATION_ID, n);
+                    }
+                }
+            } else {
+                final boolean enabled = intent.getBooleanExtra(EXTRA_GPS_ENABLED, false);
+                int textResId = 0, icon;
+
+                if (action.equals(GPS_FIX_CHANGE_ACTION) && enabled) {
+                    // GPS is getting fixes
+                    icon = gps_on;
+                    mShowIcon = true;
+                    if (mIconPos == GPSIconPosition.LEFT) {
+                        textResId = found_text;
+                    }
+                    if (mQSTile && quicksettings_icon != null) {
+                        quicksettings_icon.stop();
+                        quicksettings_icon.selectDrawable(1);
+                        quicksettings_icon.skipFrame(0, false);
+                        quicksettings_icon.skipFrame(1, true);
+                        quicksettings_icon.skipFrame(2, false);
+                    }
+                    mAcquiring = false;
+                } else if (action.equals(GPS_ENABLED_CHANGE_ACTION) && !enabled) {
+                    // GPS is off
+                    if (mPermamode == false) {
+                        mShowIcon = false;
+                        icon = textResId = 0;
+                    } else {
+                        mShowIcon = true;
+                        icon = gps_on;
+                        textResId = quick_settings_location_label;
+                    }
+                    if (mQSTile && quicksettings_icon != null) {
+                        quicksettings_icon.stop();
+                        quicksettings_icon.selectDrawable(0);
+                        quicksettings_icon.skipFrame(0, false);
+                        quicksettings_icon.skipFrame(1, false);
+                        quicksettings_icon.skipFrame(2, false);
+                    }
+                    mAcquiring = false;
+                } else {
+                    // GPS is on, but not receiving fixes
+                    icon = gps_anim;
+                    mShowIcon = true;
+                    mAcquiring = true;
+                    if (mIconPos == GPSIconPosition.LEFT) {
+                        textResId = searching_text;
+                    }
+                    if (mQSTile && quicksettings_icon != null) {
+                        quicksettings_icon.skipFrame(0, true);
+                        quicksettings_icon.skipFrame(1, false);
+                        quicksettings_icon.skipFrame(2, false);
+                        quicksettings_icon.start();
+                    }
+                }
+
+
+                if (mIconPos == GPSIconPosition.LEFT) {
+                    try {
+                        if (mShowIcon) {
+                            Intent gpsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            gpsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, gpsIntent, 0);
+
+                            NotificationBuilder = new Notification.Builder(mContext)
+                                    .setSmallIcon(icon)
+                                    .setContentTitle(mContext.getText(textResId))
+                                    .setOngoing(true)
+                                            //.setWhen(0)
+                                    .setShowWhen(false)
+                                    .setContentIntent(pendingIntent);
+
+
+                            Notification n = NotificationBuilder.build();
+                            // Notification.Builder will helpfully fill these out for you no matter what you do
+                            n.tickerView = null;
+                            n.tickerText = null;
+
+                            mNotificationManager.notify(GPS_NOTIFICATION_ID, n);
+                        } else {
+                            mNotificationManager.cancel(GPS_NOTIFICATION_ID);
+                        }
+                    } catch (Exception ex) {
+                        // well, it was worth a shot
+                    }
+                } else if (mIconPos == GPSIconPosition.RIGHT) {
+                    if (mShowIcon) {
+                        XposedHelpers.callMethod(mStatusBarManager, "setIcon", LOCATION_STATUS_ICON_PLACEHOLDER, icon, 0, mContext.getString(accessibility_location_active));
+                    } else {
+                        XposedHelpers.callMethod(mStatusBarManager, "removeIcon", LOCATION_STATUS_ICON_PLACEHOLDER);
+                    }
+                }
+            }
+        }
+    };
+
+    /**
+     * only if ShowGPSStatus is set to true
+     * runs in the private app context
+     * sends a broadcast with the data
+     */
+    private XC_MethodHook onGpsStatusChanged = new XC_MethodHook() {
+        @Override
+        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+
+            if (mGpsStatus == null || mContext == null || mLocationManager == null) {
+                 return;
+            }
+            int event = (Integer)param.args[0];
+            Iterable<GpsSatellite> satellites = mGpsStatus.getSatellites();
+            Iterator<GpsSatellite> sat = satellites.iterator();
             int satInView = 0, satInUse = 0;
             while (sat.hasNext()) {
                 GpsSatellite satellite = sat.next();
                 if (satellite.usedInFix())
-                	satInUse++;
+                    satInUse++;
                 satInView++;
             }
-            
+
             if (satInView > 0)
             {
-	            Intent intent = new Intent(ACTION_BROADCAST);
-	            intent.putExtra("event", event);
-	            intent.putExtra("satInUse", satInUse);
-	            intent.putExtra("satInView", satInView);
-	            
-	            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-	            if (location == null)
-	            {
-	            	location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-	            }
-	            intent.putExtra("location", location);
-	            
-	            context.sendBroadcast(intent);
+                Intent intent = new Intent(ACTION_BROADCAST);
+                intent.putExtra("event", event);
+                intent.putExtra("satInUse", satInUse);
+                intent.putExtra("satInView", satInView);
+
+                Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (location == null)
+                {
+                    location = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                }
+                intent.putExtra("location", location);
+                if (DEBUG) {
+                    log("Sending BROADCAST: event=" + event + "\n\t\tsatInUse=" + satInView + "\n\t\tsatInView=" + satInView + "\n\t\tlocation=" + location);
+                }
+                mContext.sendBroadcast(intent);
             }
-            
-    	}		
-	}
+        }
+    };
+
 }

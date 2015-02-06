@@ -16,8 +16,6 @@
 
 package eun.xposed.gpsnotification;
 
-import java.io.IOException;
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -54,21 +52,21 @@ public class SettingsActivity extends PreferenceActivity {
 		addPreferencesFromResource(R.xml.pref_general);
 		bInit = false;
 		
-		iconposition = findPreference("iconposition");
-		icon = findPreference("icon");
-		animationspeed = findPreference("animationspeed");
-		permamode = findPreference("permamode");
-		gpsstatus = findPreference("gpsstatus");
-		qstile = findPreference("replace_quicksettings");
+		iconposition = findPreference(GPSNotification.SETTING_ICONPOSITION);
+		icon = findPreference(GPSNotification.SETTING_ICON);
+		animationspeed = findPreference(GPSNotification.SETTING_ANIMATION_SPEED);
+		permamode = findPreference(GPSNotification.SETTING_PERMAMODE);
+		gpsstatus = findPreference(GPSNotification.SETTING_SHOW_GPS_STATUS);
+		qstile = findPreference(GPSNotification.SETTING_QUICKSETTINGS);
 		
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
-		dIconPosition = prefs.getString("iconposition", "1");
-		dIcon = prefs.getString("icon", "0");
-		dAnimationSpeed = prefs.getString("animationspeed", "500");
-		dPermaMode = prefs.getBoolean("permamode", false);
-		dGpsStatus = prefs.getBoolean("gpsstatus", false);
-		dQSTile = prefs.getBoolean("replace_quicksettings", true);
+		dIconPosition = prefs.getString(GPSNotification.SETTING_ICONPOSITION, "1");
+		dIcon = prefs.getString(GPSNotification.SETTING_ICON, "0");
+		dAnimationSpeed = prefs.getString(GPSNotification.SETTING_ANIMATION_SPEED, "500");
+		dPermaMode = prefs.getBoolean(GPSNotification.SETTING_PERMAMODE, false);
+		dGpsStatus = prefs.getBoolean(GPSNotification.SETTING_SHOW_GPS_STATUS, false);
+		dQSTile = prefs.getBoolean(GPSNotification.SETTING_QUICKSETTINGS, true);
 		
 		bindPreferenceSummaryToValue(iconposition, dIconPosition);
 		bindPreferenceSummaryToValue(icon, dIcon);
@@ -83,12 +81,12 @@ public class SettingsActivity extends PreferenceActivity {
 	{
 		Object dIconPosition, dIcon, dAnimationSpeed, dPermaMode, dGpsStatus, dQSTile;
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		dIconPosition = prefs.getString("iconposition", "1");
-		dIcon = prefs.getString("icon", "0");
-		dAnimationSpeed = prefs.getString("animationspeed", "500");
-		dPermaMode = prefs.getBoolean("permamode", false);
-		dGpsStatus = prefs.getBoolean("gpsstatus", false);
-		dQSTile = prefs.getBoolean("qstile", true);
+		dIconPosition = prefs.getString(GPSNotification.SETTING_ICONPOSITION, "1");
+		dIcon = prefs.getString(GPSNotification.SETTING_ICON, "0");
+		dAnimationSpeed = prefs.getString(GPSNotification.SETTING_ANIMATION_SPEED, "500");
+		dPermaMode = prefs.getBoolean(GPSNotification.SETTING_PERMAMODE, false);
+		dGpsStatus = prefs.getBoolean(GPSNotification.SETTING_SHOW_GPS_STATUS, false);
+		dQSTile = prefs.getBoolean(GPSNotification.SETTING_QUICKSETTINGS, true);
 		return !(dIconPosition.equals(this.dIconPosition) && dIcon.equals(this.dIcon) && dAnimationSpeed.equals(this.dAnimationSpeed) && dPermaMode.equals(this.dPermaMode) && dGpsStatus.equals(this.dGpsStatus) && dQSTile.equals(this.dQSTile));
 	}
 	
@@ -125,7 +123,7 @@ public class SettingsActivity extends PreferenceActivity {
 					value = "100";
 					SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(preference.getContext());
 					Editor editor = prefs.edit();
-					editor.putString("animationspeed", "100");
+					editor.putString(GPSNotification.SETTING_ANIMATION_SPEED, "100");
 					editor.commit();
 					retVal = false;
 				}
@@ -142,7 +140,7 @@ public class SettingsActivity extends PreferenceActivity {
 				editor.putInt(preference.getKey(), (Integer) value);
 			editor.commit();
 			
-			if ((prefs.getString("iconposition", "1").equals("1")))
+			if ((prefs.getString(GPSNotification.SETTING_ICONPOSITION, "1").equals("1")))
 			{
 				gpsstatus.setEnabled(true);
 			}

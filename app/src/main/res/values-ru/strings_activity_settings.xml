@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+**
+** Copyright 2014, GPSNotification
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+**     http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+*/
+Russian text by https://github.com/webserfer
+-->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <string name="settings_title">GPSNotification - настройки</string>
+    <string name="pref_header_general">Общие</string>
+    <string name="pref_title_position">Положение иконки GPS в строке состояния</string>
+    <string name="pref_title_icon">Стиль иконки</string>
+    <string name="pref_title_animationspeed">Скорость анимации</string>
+    <string name="pref_title_permamode">Постоянный режим</string>
+    <string name="pref_summary_permamode">Показывать иконку, даже когда не используется.</string>
+    <string name="pref_title_gpsstatus">Информация GPS</string>
+    <string name="pref_summary_gpsstatus">Отображать информацию о GPS в уведомлении: найденные спутники, широта и долгота.</string>
+    <string name="notification_restart">Для применения изменений необходима перезагрузка.</string>
+    
+    <string-array name="pref_list_position">
+        <item>Невидимая</item>
+        <item>Слева</item>
+        <item>Справа</item>
+    </string-array>
+    
+    <string-array name="pref_list_position_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    
+    <string-array name="pref_list_icon">
+        <item>JellyBean</item>
+        <item>KitKat</item>
+    </string-array>
+    
+    <string-array name="pref_list_icon_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+</resources>
