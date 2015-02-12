@@ -28,7 +28,9 @@ Russian text by https://github.com/webserfer
     <string name="pref_title_gpsstatus">Информация GPS</string>
     <string name="pref_summary_gpsstatus">Отображать информацию о GPS в уведомлении: найденные спутники, широта и долгота.</string>
     <string name="notification_restart">Для применения изменений необходима перезагрузка.</string>
-    
+    <string name="pref_replace_quicksettings">Replace QuickSettings Tile</string>
+    <string name="pref_summary_replace_quicksettings">Replace the Tile in QuickSettings with a new one.</string>
+
     <string-array name="pref_list_position">
         <item>Невидимая</item>
         <item>Слева</item>
