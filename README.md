@@ -11,6 +11,9 @@ Needs the [Xposed Framework](http://xposed.info)
 
 CHANGELOG
 =========
+* 1.81
+  * Fixed writing on XSharedPreferences
+
 * 1.8
   * Russian translation 
   * Moved to Android Studio

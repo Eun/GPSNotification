@@ -188,11 +188,7 @@ public class GPSNotification implements IXposedHookLoadPackage, IXposedHookZygot
 			if (mIconPos == GPSIconPosition.NONE)
 				mPermamode = false;
 			
-			if (mIconPos != GPSIconPosition.LEFT)
-			{
-				prefs.edit().putBoolean(SETTING_SHOW_GPS_STATUS, false).commit();
-			}
-			
+
 			
 			
 			mAnimationSpeed = Integer.parseInt(prefs.getString(SETTING_ANIMATION_SPEED, String.valueOf(500)));
