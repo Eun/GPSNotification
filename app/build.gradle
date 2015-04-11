@@ -19,6 +19,6 @@ android {
 }
 
 dependencies {
-    provided files('libs/XposedBridge-30.jar')
+    provided files('libs/XposedBridgeApi-20150213.jar')
     compile 'com.android.support:support-v4:19.1.0'
 }

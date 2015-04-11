@@ -192,8 +192,14 @@ public class GPSNotification implements IXposedHookLoadPackage, IXposedHookZygot
 			
 			
 			mAnimationSpeed = Integer.parseInt(prefs.getString(SETTING_ANIMATION_SPEED, String.valueOf(500)));
-			
-			LocationControllerClass = XposedHelpers.findClass("com.android.systemui.statusbar.policy.LocationController", lpparam.classLoader);
+
+            if (Build.VERSION.SDK_INT >= 21) {
+                LocationControllerClass = XposedHelpers.findClass("com.android.systemui.statusbar.policy.LocationControllerImpl", lpparam.classLoader);
+            }
+            else {
+                LocationControllerClass = XposedHelpers.findClass("com.android.systemui.statusbar.policy.LocationController", lpparam.classLoader);
+            }
+
 			XposedBridge.hookAllConstructors(LocationControllerClass, new XC_MethodHook() {
 				 @Override
 				 protected void afterHookedMethod(MethodHookParam param) throws Throwable {

@@ -11,6 +11,9 @@ Needs the [Xposed Framework](http://xposed.info)
 
 CHANGELOG
 =========
+* 1.82
+  * Beta Lollipop Release
+
 * 1.81
   * Fixed writing on XSharedPreferences
 
